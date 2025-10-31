@@ -1,43 +1,94 @@
-# Виртуальные окружения
+# === Виртуальные окружения (критично!) ===
 .venv/
 venv/
 env/
 
-# Артефакты Poetry
+# === Poetry-специфичные файлы ===
 .cache/
-poetry.lock
+poetry.lock          # Можно оставить, если фиксируете версии; игнорируем, если нет
 
-# Пакеты и сборки
+# === Артефакты сборки и дистрибутива ===
 dist/
 build/
 *.egg-info/
+*.whl                # Игнорируем, если не храним готовые пакеты в репозитории
+*.tar.gz            # Аналогично
 
-# Python байт‑код
+# === Python-специфичные ===
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.pyi              # Интерфейсные файлы mypy
 
-# Кэш линтеров
+# === Кэш инструментов анализа ===
 .ruff_cache/
 .mypy_cache/
+.pytest_cache/
+.coverage/
+htmlcov/
 
-# Файлы IDE
+# === Файлы данных и метаданных (НЕ должны быть в Git!) ===
+db_meta.json        # Ключевые метаданные БД — пользовательские данные
+*.db
+*.sqlite
+*.json             # Если есть другие JSON-хранилища
+data/              # Директория для пользовательских данных
+
+# === Лог-файлы и временные данные ===
+*.log
+*.tmp
+*.lock
+
+# === Файлы IDE и редакторов ===
 .vscode/
 .idea/
 *.sublime-workspace
-
-# Лог‑файлы
-*.log
-
-# Временные файлы
-*.tmp
 *.swp
+*.swo
+*.swn
 
-# Системные файлы
-.DS_Store
-Thumbs.db
+# === Системные файлы ОС ===
+.DS_Store           # macOS
+Thumbs.db          # Windows
+ehthumbs.db
+desktop.ini
 
-# Личные конфиги
+# === Личные конфиги, секреты, окружение ===
 .env
+.env.*
 *.local
+secrets.py
+config/local.py
+
+# === Активы, сгенерированные в процессе разработки ===
+asciinema-demo.json  # Демо-запись
+demo.gif           # Конвертированное демо
+screenshots/
+*.png
+*.jpg
+*.jpeg
+
+# === Тестовые артефакты ===
+.tox/
+.pytest/
+test_output/
+
+# === Документация (если генерируется) ===
+docs/_build/
+docs/generated/
+
+# === Node.js (если используется фронтенд) ===
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# === Docker (если используется) ===
+.dockerignore
+docker-compose.override.yml
+
+# === Прочие временные файлы ===
+*~                  # Файлы автосохранения редакторов
+*.bak
+*.old
+*.orig
