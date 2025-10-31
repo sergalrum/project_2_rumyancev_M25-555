@@ -20,7 +20,7 @@ def create_table(metadata, table_name, columns):
 
     # Добавляем ID и сохраняем структуру
     metadata[table_name] = ['ID:int'] + columns
-    print(f'Таблица "{table_name}" успешно создана со столбцами: {", ".join(metadata[table_name])}')
+    print(f'Таблица "{table_name}" успешно создана со столбцами: {", ".join(metadata[table_name])}') # noqa: E501
     return metadata
 
 def drop_table(metadata, table_name):
