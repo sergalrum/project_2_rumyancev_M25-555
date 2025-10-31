@@ -129,7 +129,8 @@ DB project is running!
 ## Демонстрация работы
 
 Посмотреть интерактивную демонстрацию работы программы можно по ссылке:  
-[Ссылка на asciinema](https://asciinema.org/a/ioRNABqdMw6oGbtuDTsQb6UmM)
+-- [Ссылка на asciinema](https://asciinema.org/a/ioRNABqdMw6oGbtuDTsQb6UmM)
+[![asciicast](https://asciinema.org/a/ioRNABqdMw6oGbtuDTsQb6UmM)](https://asciinema.org/a/ioRNABqdMw6oGbtuDTsQb6UmM)
 
 
 > **Примечание:**  
