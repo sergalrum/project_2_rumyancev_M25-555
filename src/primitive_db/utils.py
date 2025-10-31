@@ -1,8 +1,8 @@
 import json
-#import os
+
 
 def load_metadata(filepath):
-    """Загружает метаданные из JSON-файла. Если файл не найден, возвращает пустой словарь."""
+    """Загружает метаданные из JSON-файла. Если файл не найден, возвращает пустой словарь.""" # noqa: E501
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
