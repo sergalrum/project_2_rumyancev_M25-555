@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "project_2_rumyancev_m25-555"
+name = "project-2-rumyancev-m25-555"
 version = "0.1.0"
 description = ""
 authors = ["Sergey Rumyancev <133sergey@gmail.com>"]
@@ -14,6 +14,7 @@ prompt = "^0.4.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.14.3"
+isort = "^7.0.0"
 
 [build-system]
 requires = ["poetry-core"]
