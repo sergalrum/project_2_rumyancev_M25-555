@@ -1,7 +1,7 @@
 import prompt
-from .core import create_table, drop_table, list_tables
-from .utiles import load_metadata, save_metadata
 
+from .core import create_table, drop_table, list_tables
+from .utils import load_metadata, save_metadata
 
 METADATA_FILE = 'db_meta.json'
 
@@ -40,7 +40,7 @@ def run():
         # Обработка команд
         if command == 'create_table':
             if len(args) < 3:
-                print('Некорректное значение: недостаточно аргументов. Пример: create_table users name:str age:int')
+                print('Некорректное значение: недостаточно аргументов. Пример: create_table users name:str age:int') # noqa: E501
                 continue
 
             table_name = args[1]
@@ -51,7 +51,7 @@ def run():
 
         elif command == 'drop_table':
             if len(args) != 2:
-                print('Некорректное значение: укажите имя таблицы. Пример: drop_table users')
+                print('Некорректное значение: укажите имя таблицы. Пример: drop_table users') # noqa: E501
                 continue
 
             table_name = args[1]
