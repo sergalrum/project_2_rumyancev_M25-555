@@ -263,8 +263,8 @@ DB project is running!
 ### Демонстрация работы
 
 Посмотреть интерактивную запись сеанса с CRUD‑операциями можно по ссылке:  
-```[![Демонстрация CRUD](https://asciinema.org/a/erqz0SyzdMGPQONnHFGUdw4gO.svg)](https://asciinema.org/a/erqz0SyzdMGPQONnHFGUdw4gO)
-```
+[![Демонстрация CRUD](https://asciinema.org/a/erqz0SyzdMGPQONnHFGUdw4gO.svg)](https://asciinema.org/a/erqz0SyzdMGPQONnHFGUdw4gO)
+
 
 ```
 
