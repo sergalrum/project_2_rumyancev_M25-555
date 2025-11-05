@@ -1,9 +1,18 @@
-from prettytable import PrettyTable
+import json
 from pathlib import Path
-from .utils import load_table_data, save_table_data
+
+from prettytable import PrettyTable
+
+from .decorators import confirm_action, handle_db_errors, log_time
 from .metadata import save_metadata
+from .utils import create_cacher, load_table_data, save_table_data
 
 SUPPORTED_TYPES = {'int', 'str', 'bool'}
+
+
+# Кэш для SELECT-запросов (замыкание)
+_select_cache = create_cacher()
+
 
 
 def create_table(metadata, table_name, columns):
@@ -16,23 +25,39 @@ def create_table(metadata, table_name, columns):
         print(f'Ошибка: Таблица "{table_name}" уже существует.')
         return None
 
-    # Проверяем корректность типов
+    # Проверка корректности типов
     for col in columns:
         col_name, col_type = col.split(':')
         if col_type not in SUPPORTED_TYPES:
             print(f'Некорректное значение: {col}. Поддерживаемые типы: int, str, bool.')
             return None
 
+
     # Добавляем ID и сохраняем структуру
     metadata[table_name] = ['ID:int'] + columns
     print(f'Таблица "{table_name}" успешно создана со столбцами: {", ".join(metadata[table_name])}') # noqa: E501
+
+
+    # Создаём JSON-файл для таблицы
+    data_file = Path(f'data/{table_name}.json')
+    if not data_file.exists():
+        with open(data_file, 'w', encoding='utf-8') as f:
+            json.dump([], f, ensure_ascii=False, indent=2)
+        print(f'Файл данных {data_file} создан.')
+    
+
     return metadata
 
+
+
+@confirm_action("удаление таблицы")
+@handle_db_errors
 def drop_table(metadata, table_name):
     """Удаляет таблицу из метаданных и файла данных."""
     if table_name not in metadata:
         print(f'Ошибка: Таблица "{table_name}" не существует.')
         return None
+
 
     # 1. Удаляем метаданные
     del metadata[table_name]
@@ -46,8 +71,12 @@ def drop_table(metadata, table_name):
     else:
         print(f'Файл данных {data_file} не найден (пропущено удаление).')
 
+
     print(f'Таблица "{table_name}" успешно удалена.')
     return metadata
+
+
+
 
 def list_tables(metadata):
     """Выводит список всех таблиц."""
@@ -59,6 +88,10 @@ def list_tables(metadata):
         print(f'- {table}')
 
 
+
+
+@handle_db_errors
+@log_time
 def insert(metadata, table_name, values):
     """Добавляет запись в таблицу. Возвращает обновлённые данные или None при ошибке."""
     if table_name not in metadata:
@@ -81,8 +114,10 @@ def insert(metadata, table_name, values):
     # Загрузка данных таблицы
     table_data = load_table_data(table_name)
 
+
     # Генерация ID
     new_id = 1 if not table_data else max(row['ID'] for row in table_data) + 1
+
 
     # Создание новой записи
     new_row = {'ID': new_id}
@@ -90,23 +125,38 @@ def insert(metadata, table_name, values):
         col_name = col.split(':')[0]
         new_row[col_name] = val
 
+
     table_data.append(new_row)
 
     save_table_data(table_name, table_data)
     print(f'Запись с ID={new_id} успешно добавлена в таблицу "{table_name}".')
     return table_data
 
+
+
+
+@handle_db_errors
+@log_time
 def select(table_data, where_clause=None):
     """Возвращает отфильтрованные записи. Если where_clause None — все записи."""
-    if not where_clause:
-        return table_data
+    # Ключ кэша: комбинация данных и условий
+    cache_key = (str(table_data), str(where_clause))
 
-    filtered = []
-    for row in table_data:
-        if all(str(row.get(k)) == str(v) for k, v in where_clause.items()):
-            filtered.append(row)
-    return filtered
+    def get_data():
+        if not where_clause:
+            return table_data
+        filtered = []
+        for row in table_data:
+            if all(str(row.get(k)) == str(v) for k, v in where_clause.items()):
+                filtered.append(row)
+        return filtered
 
+    return _select_cache(cache_key, get_data)
+
+
+
+
+@handle_db_errors
 def update(table_data, table_name, set_clause, where_clause):
     """Обновляет записи по условию. Возвращает изменённые данные."""
     updated_count = 0
@@ -117,31 +167,33 @@ def update(table_data, table_name, set_clause, where_clause):
             updated_count += 1
 
     if updated_count:
-        save_table_data(table_name, table_data)  # Передаём имя таблицы явно
+        save_table_data(table_name, table_data)
         print(f'Записи с условием {where_clause} успешно обновлены.')
     else:
         print('Записи не найдены для обновления.')
     return table_data
 
 
+
+
+@confirm_action("удаление записей")
+@handle_db_errors
 def delete(table_data, table_name, where_clause):
-    """Удаляет записи по условию. Возвращает изменённые данные.
-    
-    :param table_data: Список записей таблицы (данные из JSON).
-    :param table_name: Имя таблицы (для сохранения в файл).
-    :param where_clause: Словарь условий фильтрации (например, {'ID': '1'}).
-    :return: Отфильтрованный список записей (без удалённых).
-    """
+    """Удаляет записи по условию. Возвращает изменённые данные."""
     filtered = [row for row in table_data if not all(str(row.get(k)) == str(v) for k, v in where_clause.items())] # noqa: E501
     deleted_count = len(table_data) - len(filtered)
 
+
     if deleted_count:
-        save_table_data(table_name, filtered)  # Сохраняем по имени таблицы
+        save_table_data(table_name, filtered)
         print(f'Удалено {deleted_count} записей по условию {where_clause}.')
     else:
         print('Записи не найдены для удаления.')
-    
+
+
     return filtered
+
+
 
 
 def info(metadata, table_name):
@@ -152,10 +204,14 @@ def info(metadata, table_name):
 
     columns = metadata[table_name]
     table_data = load_table_data(table_name)
-    
+
     print(f'Таблица: {table_name}')
     print(f'Столбцы: {", ".join(columns)}')
     print(f'Количество записей: {len(table_data)}')
+
+
+
+
 
 def _validate_type(value, expected_type):
     """Проверяет тип значения. Поддерживает int, str, bool."""
@@ -170,6 +226,9 @@ def _validate_type(value, expected_type):
         return True
     except (ValueError, TypeError):
         return False
+
+
+
 
 def print_table(data, columns):
     """Выводит данные в виде таблицы с помощью PrettyTable."""
